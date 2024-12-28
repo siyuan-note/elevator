@@ -20,59 +20,19 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
-	"syscall"
 
 	"github.com/88250/gulu"
-	"github.com/siyuan-note/logging"
-	"golang.org/x/sys/windows"
 )
 
-// 支持一键加入 Microsoft Defender 排除项 https://github.com/siyuan-note/siyuan/issues/13650
-
-func isUsingMicrosoftDefender() bool {
-	if !gulu.OS.IsWindows() {
-		return false
-	}
-
-	cmd := exec.Command("powershell", "-Command", "Get-MpPreference")
+func main() {
+	args := []string{"/c"}
+	args = append(args, os.Args[1:]...)
+	cmd := exec.Command("cmd", args...)
 	gulu.CmdAttr(cmd)
-	_, err := cmd.CombinedOutput()
-	if nil != err {
-		return false
-	}
-	return true
-}
-
-func addExclusionToWindowsDefender(exclusionPath string) {
-	if !gulu.OS.IsWindows() {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("elevator failed: %s", err)
 		return
 	}
-
-	if isAdmin() {
-		cmd := exec.Command("powershell", "-Command", fmt.Sprintf("Add-MpPreference -ExclusionPath %s", exclusionPath))
-		gulu.CmdAttr(cmd)
-		output, err := cmd.CombinedOutput()
-		if nil != err {
-			logging.LogErrorf("add Windows Defender exclusion path [%s] failed: %s", exclusionPath, string(output))
-			return
-		}
-	} else {
-		cwd, _ := os.Getwd()
-		args := strings.Join([]string{"-Command", "Add-MpPreference", "-ExclusionPath", exclusionPath}, " ")
-		verbPtr, _ := syscall.UTF16PtrFromString("runas")
-		exePtr, _ := syscall.UTF16PtrFromString("powershell")
-		cwdPtr, _ := syscall.UTF16PtrFromString(cwd)
-		argPtr, _ := syscall.UTF16PtrFromString(args)
-		var showCmd int32 = 1 //SW_NORMAL
-		err := windows.ShellExecute(0, verbPtr, exePtr, argPtr, cwdPtr, showCmd)
-		if err != nil {
-			logging.LogErrorf("runas PowerShell failed: %s", err)
-		}
-	}
-}
-
-func isAdmin() bool {
-	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
-	return err == nil
 }

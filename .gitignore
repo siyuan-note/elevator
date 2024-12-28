@@ -7,6 +7,8 @@
 *.dll
 *.so
 *.dylib
+*.syso
+.DS_Store
 
 # Test binary, built with `go test -c`
 *.test
@@ -27,3 +29,6 @@ go.work.sum
 # IDE
 .idea/
 .vscode/
+
+# Log
+*.log
