@@ -7,7 +7,7 @@ goversioninfo -platform-specific=true -icon=icon.ico -manifest=elevator.manifest
 echo 'Building amd64'
 set GOOS=windows
 set GOARCH=amd64
-go build -ldflags "-s -w -H=windowsgui" -o elevator.exe .
+go build -ldflags "-s -w -H=windowsgui" -o elevator-amd64.exe .
 
 
 echo 'Building arm64'
